@@ -45,8 +45,10 @@ class ExperimentResult():
                 'PC12': str(),
                 }
         metadata_var_type_spec = {'timestamp': str(), 'key': str()}
-        self.df_data = pd.DataFrame(columns=[pc_var_type_spec])
-        self.df_press = pd.DataFrame(columns=[metadata_var_type_spec])
+#       self.df_data = pd.DataFrame(columns=[pc_var_type_spec])
+        self.df_data = pd.DataFrame()
+#       self.df_press = pd.DataFrame(columns=[metadata_var_type_spec])
+        self.df_press = pd.DataFrame()
         self.filepath = str()
         self.init_record(data_file_path, data_file_textlines)
         return
@@ -54,6 +56,24 @@ class ExperimentResult():
     def init_record(self, data_file_path, data_file_textlines):
         self.filepath = data_file_path
         # Now, convert textlines into pandas DataFrame
+        # Handle last line first
+        data_lines = data_file_textlines[:-1]
+        last_line = data_file_textlines[-1]
+        last_line_list = last_line.split(' ')
+        if last_line_list[-1] == '\n':
+            del last_line_list[-1]
+        key_press_times = len(last_line_list) // 2
+        assert key_press_times * 2 == len(last_line_list)
+        press_time_list = last_line_list[:key_press_times]
+        press_key_list = last_line_list[key_press_times:]
+        for i in range(key_press_times):
+            tmp_row = {'timestamp': press_time_list[i], 'key': press_key_list[i]}
+            tmp_df = pd.DataFrame(tmp_row, index=[0])
+            self.df_press = pd.concat([self.df_press, tmp_df], axis=0, ignore_index=True)
+        print('DEBUG: {}'.format(self.df_press))
+        print(last_line_list)
+        # Then, handle data lines
+
         # TODO: Finish me
         pass
 
@@ -63,8 +83,10 @@ def store_file_data(data_file_path, data_file_textlines):
 if __name__ == '__main__':
     print('Hello world!')
     # Find all files, using rglob()
-    possible_data_files = BASE_DIR.rglob(r'output_*.txt')
+    possible_data_files = [x for x in BASE_DIR.rglob(r'output_*.txt')]
+    print('INFO: Candidate files No.: {}'.format(len(possible_data_files)))
     for data_file in possible_data_files:
+        print('a')
         data_file_textlines = None
         with open(data_file, 'r') as f:
             data_file_textlines = f.readlines()
@@ -76,7 +98,9 @@ if __name__ == '__main__':
                 data_file.name, str(validation_result[1])))
             continue
         # Now with valid text, try to record it
-        curr_data_record = ExperimentResult(data_file_path, data_file_textlines)
+        print('k')
+        curr_data_record = ExperimentResult(data_file, data_file_textlines)
+        print('.', end='')
 
         # Break here
         break
