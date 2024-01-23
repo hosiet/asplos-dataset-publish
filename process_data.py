@@ -62,9 +62,9 @@ class ExperimentResult():
             PC9, PC10, PC11, PC12 = tmp3.strip().split(' ')
             tmp_list.append({
                 'timestamp': str(data_line.split(':')[1].strip()),
-                'PC1': PC1, 'PC2': PC2, 'PC3': PC3, 'PC4': PC4,
-                'PC5': PC5, 'PC6': PC6, 'PC7': PC7, 'PC8': PC9,
-                'PC9': PC9, 'PC10': PC10, 'PC11': PC11, 'PC12': PC12,
+                'PERF_LRZ_VISIBLE_PRIM_AFTER_LRZ': PC1, 'PERF_LRZ_FULL_8X8_TILES': PC2, 'PERF_LRZ_PARTIAL_8X8_TILES': PC3, 'PERF_LRZ_VISIBLE_PIXEL_AFTER_LRZ': PC4,
+                'PERF_RAS_SUPERTILE_ACTIVE_CYCLES': PC5, 'PERF_RAS_SUPER_TILES': PC6, 'PERF_RAS_8X4_TILES': PC7, 'PERF_RAS_FULLY_COVERED_8X4_TILES': PC9,
+                'PERF_VPC_PC_PRIMITIVES': PC9, 'PERF_VPC_SP_COMPONENTS': PC10, 'PERF_VPC_LRZ_ASSIGN_PRIMITIVES': PC11, 'PERF_VPC_SP_LM_COMPONENTS': PC12,
                 })
         tmp_data_df = pd.DataFrame(tmp_list)
         self.df_data = pd.concat([self.df_data, tmp_data_df], axis=0, ignore_index=True)
