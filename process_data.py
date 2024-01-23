@@ -29,25 +29,7 @@ class ExperimentResult():
     (2) Timestamp and the key pressed.
     '''
     def __init__(self, data_file_path, data_file_textlines):
-        pc_var_type_spec = {
-                'timestamp': str(),
-                'PC1': str(),
-                'PC2': str(),
-                'PC3': str(),
-                'PC4': str(),
-                'PC5': str(),
-                'PC6': str(),
-                'PC7': str(),
-                'PC8': str(),
-                'PC9': str(),
-                'PC10': str(),
-                'PC11': str(),
-                'PC12': str(),
-                }
-        metadata_var_type_spec = {'timestamp': str(), 'key': str()}
-#       self.df_data = pd.DataFrame(columns=[pc_var_type_spec])
         self.df_data = pd.DataFrame()
-#       self.df_press = pd.DataFrame(columns=[metadata_var_type_spec])
         self.df_press = pd.DataFrame()
         self.filepath = str()
         self.init_record(data_file_path, data_file_textlines)
@@ -70,15 +52,36 @@ class ExperimentResult():
             tmp_row = {'timestamp': press_time_list[i], 'key': press_key_list[i]}
             tmp_df = pd.DataFrame(tmp_row, index=[0])
             self.df_press = pd.concat([self.df_press, tmp_df], axis=0, ignore_index=True)
-        print('DEBUG: {}'.format(self.df_press))
-        print(last_line_list)
         # Then, handle data lines
+        tmp_list = list()
+        for data_line in data_lines:
+            tmp_raw_dataline = data_line.split(':')[2]
+            tmp1, tmp2, tmp3, _ = tmp_raw_dataline.split(';')
+            PC1, PC2, PC3, PC4 = tmp1.strip().split(' ')
+            PC5, PC6, PC7, PC8 = tmp2.strip().split(' ')
+            PC9, PC10, PC11, PC12 = tmp3.strip().split(' ')
+            tmp_list.append({
+                'timestamp': str(data_line.split(':')[1].strip()),
+                'PC1': PC1, 'PC2': PC2, 'PC3': PC3, 'PC4': PC4,
+                'PC5': PC5, 'PC6': PC6, 'PC7': PC7, 'PC8': PC9,
+                'PC9': PC9, 'PC10': PC10, 'PC11': PC11, 'PC12': PC12,
+                })
+        tmp_data_df = pd.DataFrame(tmp_list)
+        self.df_data = pd.concat([self.df_data, tmp_data_df], axis=0, ignore_index=True)
+        return
 
-        # TODO: Finish me
-        pass
+    def save_as_csv(self, destdir):
+        '''Save current dataset into CSV files.'''
+        timestamp_str = self.filepath.name.split('output_')[1].split('.txt')[0]
+        assert re.match(r'^[0-9]+$', timestamp_str)
+        target_dir_path = destdir / timestamp_str
+        target_dir_path.mkdir(exist_ok=True)
+        data_csv_file_path = target_dir_path / '{}_data.csv'.format(timestamp_str)
+        keys_csv_file_path = target_dir_path / '{}_keys.csv'.format(timestamp_str)
+        self.df_data.to_csv(data_csv_file_path, sep=' ', index=False)
+        self.df_press.to_csv(keys_csv_file_path, sep=' ', index=False)
+        return
 
-def store_file_data(data_file_path, data_file_textlines):
-    pass
 
 if __name__ == '__main__':
     print('Hello world!')
@@ -86,7 +89,6 @@ if __name__ == '__main__':
     possible_data_files = [x for x in BASE_DIR.rglob(r'output_*.txt')]
     print('INFO: Candidate files No.: {}'.format(len(possible_data_files)))
     for data_file in possible_data_files:
-        print('a')
         data_file_textlines = None
         with open(data_file, 'r') as f:
             data_file_textlines = f.readlines()
@@ -98,9 +100,6 @@ if __name__ == '__main__':
                 data_file.name, str(validation_result[1])))
             continue
         # Now with valid text, try to record it
-        print('k')
         curr_data_record = ExperimentResult(data_file, data_file_textlines)
+        curr_data_record.save_as_csv(destdir=Path('.') / 'pc_counter_dataset')
         print('.', end='')
-
-        # Break here
-        break
